@@ -13,6 +13,13 @@ struct key {
 	char **com;
 };
 
+/* WM functions */
+static void shutdown(void);
+static void die(const char *fmt, ...);
+/* Helper functions */
+static xcb_keycode_t *xcb_get_keycodes(xcb_keysym_t keysym);
+static void xcb_focus_window(xcb_drawable_t window); 
+static void xcb_set_focus_color(xcb_window_t window, int32_t color);
 /* Event functions */
 static void button_press(xcb_generic_event_t *event);
 static void button_release(xcb_generic_event_t *event);
@@ -22,12 +29,7 @@ static void focus_in(xcb_generic_event_t *event);
 static void focus_out(xcb_generic_event_t *event);
 static void map_request(xcb_generic_event_t *event);
 static void motion_notify(xcb_generic_event_t *event);
-/* WM functions */
-static void shutdown(void);
-/* Helper functions */
-static xcb_keycode_t *xcb_get_keycodes(xcb_keysym_t keysym);
 /* Internal functions */
-static void die(const char *fmt, ...);
 static void setup(void);
 static void run(void);
 

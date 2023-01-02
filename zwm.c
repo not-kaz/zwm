@@ -14,17 +14,18 @@ xcb_screen_t *screen;
 /* Included here to allow access to variables located above. */
 #include "config.h"
 
-/* Event functions */
-static void button_press(xcb_generic_event_t *event) { UNUSED(event); }
-static void button_release(xcb_generic_event_t *event) { UNUSED(event); }
-static void destroy_notify(xcb_generic_event_t *event) { UNUSED(event); }
-static void enter_notify(xcb_generic_event_t *event) { UNUSED(event); }
-static void focus_in(xcb_generic_event_t *event) { UNUSED(event); }
-static void focus_out(xcb_generic_event_t *event) { UNUSED(event); }
-static void map_request(xcb_generic_event_t *event) { UNUSED(event); }
-static void motion_notify(xcb_generic_event_t *event) { UNUSED(event); }
-
 /* WM functions */
+static void die(const char *fmt, ...)
+{
+	va_list args;
+	
+	va_start(args, fmt);
+	vfprintf(stderr, fmt, args);
+	va_end(args);
+	xcb_disconnect(conn);
+	exit(EXIT_FAILURE);
+}
+
 static void shutdown(void)
 {
 	xcb_disconnect(conn);
@@ -33,6 +34,34 @@ static void shutdown(void)
 }
 
 /* Helper functions */
+static void xcb_raise_window(xcb_drawable_t window)
+{
+	if (screen->root == window || !window) {
+		return;
+	}
+	xcb_configure_window(conn, window, XCB_CONFIG_WINDOW_STACK_MODE,
+		XCB_STACK_MODE_ABOVE);
+	/* xcb_flush(conn); */
+}
+
+static void xcb_focus_window(xcb_drawable_t window)
+{
+	if ((!window) || (window == screen->root)) {
+		return;
+	}
+	xcb_set_input_focus(conn, XCB_INPUT_FOCUS_POINTER_ROOT, window,
+		XCB_CURRENT_TIME);
+}
+
+static void xcb_set_focus_color(xcb_window_t window, int32_t color)
+{
+	if ((BORDER_WIDTH <= 0) || (window == screen->root) || (!window)) {
+		return;
+	}
+	xcb_change_window_attributes(conn, window, XCB_CW_BORDER_PIXEL, color);
+	xcb_flush(conn);
+}
+
 static void xcb_get_keycodes(xcb_keysym_t keysym)
 {
 	/* Much love to @mcpcpc on Github, taken from his XWM source. */
@@ -45,18 +74,82 @@ static void xcb_get_keycodes(xcb_keysym_t keysym)
 	return keycode;
 }
 
-/* Internal functions */
-static void die(const char *fmt, ...)
-{
-	va_list args;
-	
-	va_start(args, fmt);
-	vfprintf(stderr, fmt, args);
-	va_end(args);
-	xcb_disconnect(conn);
-	exit(EXIT_FAILURE);
+/* Event functions */
+static void button_press(xcb_generic_event_t *event) 
+{ 
+	xcb_button_press_event *button;
+	xcb_drawable_t window;
+	uint32_t mask;
+
+	button = (xcb_button_press_event_t *) event;
+	xcb_raise_window(button->child);
+	/* Take control of pointer and confine it to root until release. */
+	mask = XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_BUTTON_MOTION
+		| XCB_EVENT_MASK_POINTER_MOTION_HINT;
+	xcb_grab_pointer(conn, 0, screen->root, mask, XCB_GRAB_MODE_ASYNC, 
+		XCB_GRAB_MODE_ASYNC, screen->root, XCB_NONE, XCB_CURRENT_TIME);
+	/* xcb_flush(conn); */
 }
 
+static void button_release(xcb_generic_event_t *event) 
+{ 
+	UNUSED(event); 
+	xcb_ungrab_pointer(conn, XCB_CURRENT_TIME);
+}
+
+static void destroy_notify(xcb_generic_event_t *event) 
+{ 
+	xcb_destroy_notify_event_t *destroy;	
+
+	destroy = (xcb_destroy_notify_event_t *) event;
+	xcb_kill_client(conn, destroy->window);
+}
+
+static void enter_notify(xcb_generic_event_t *event) 
+{ 
+	xcb_enter_notify_event_t *enter;
+
+	enter = (xcb_enter_notify_event_t *) event;
+	xcb_focus_window(enter->window);
+}
+
+static void focus_in(xcb_generic_event_t *event) 
+{ 
+	UNUSED(event); 
+}
+
+static void focus_out(xcb_generic_event_t *event) 
+{ 
+	UNUSED(event); 
+}
+
+static void map_request(xcb_generic_event_t *event) 
+{ 
+	xcb_map_request_event_t *map;
+	uint32_t vals[5];
+
+	map = (xcb_map_request_event_t *) event;
+	xcb_map_window(conn, map->window);
+	/* TODO: Replace w/ geom functions from xcb to get window size. */
+	vals[0] = (screen->width_in_pixels / 2) - (800 / 2);
+	vals[1] = (screen->height_in_pixels / 2) - (600 / 2);
+	vals[2] = 800;
+	vals[3] = 600;
+	vals[4] = 1;
+	xcb_configure_window(conn, map->window, XCB_CONFIG_WINDOW_X
+		| XCB_CONFIG_WINDOW_Y | XCB_CONFIG_WINDOW_WIDTH
+		| XCB_CONFIG_WINDOW_HEIGHT | XCB_CONFIG_WINDOW_BORDER_WIDTH,
+		vals);
+	xcb_flush(conn);
+	xcb_change_window_attributes_checked(conn, map->window, 
+		XCB_CW_EVENT_MASK, XCB_EVENT_MASK_ENTER_WINDOW
+		| XCB_EVENT_MASK_FOCUS_CHANGE);
+	xcb_focus_window(map->window);
+}
+
+static void motion_notify(xcb_generic_event_t *event) { UNUSED(event); }
+
+/* Internal functions */
 static void setup(void)
 {
 	uint32_t mask;
