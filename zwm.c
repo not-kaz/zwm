@@ -10,6 +10,7 @@
 /* Global variables */
 xcb_connection_t *conn;
 xcb_screen_t *screen;
+int32_t mode; /* Mouse mode, refer to enum in header file. */
 
 /* Included here to allow access to variables located above. */
 #include "config.h"
@@ -147,7 +148,24 @@ static void map_request(xcb_generic_event_t *event)
 	xcb_focus_window(map->window);
 }
 
-static void motion_notify(xcb_generic_event_t *event) { UNUSED(event); }
+static void motion_notify(xcb_generic_event_t *event) 
+{ 
+	xcb_query_pointer_reply_t *reply;
+
+	reply = xcb_query_pointer_reply(conn, 
+		xcb_query_pointer(conn, screen->root, 0));
+	if (reply == NULL) {
+		die("Failed to get pointer position during motion event.\n");
+	}
+	switch (mode) {
+	case MOUSE_MODE_MOVE:
+		break;
+	case MOUSE_MODE_RESIZE:
+		break;
+	default:
+		break;
+	}
+}
 
 /* Internal functions */
 static void setup(void)
