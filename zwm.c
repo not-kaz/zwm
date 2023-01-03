@@ -10,6 +10,7 @@
 /* Global variables */
 xcb_connection_t *conn;
 xcb_screen_t *screen;
+xcb_drawable_t *curr_window;
 int32_t mode; /* Mouse mode, refer to enum in header file. */
 
 /* Included here to allow access to variables located above. */
