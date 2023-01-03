@@ -150,17 +150,51 @@ static void map_request(xcb_generic_event_t *event)
 
 static void motion_notify(xcb_generic_event_t *event) 
 { 
-	xcb_query_pointer_reply_t *reply;
+	xcb_query_pointer_reply_t *mouse;
+	xcb_get_geometry_cookie_t cookie;
+	xcb_get_geometry_reply_t *geom;
+	uint32_t values[2];
 
-	reply = xcb_query_pointer_reply(conn, 
+	UNUSED(event);
+	if (!curr_window) {
+		return;
+	}
+	/* Get mouse positions; */
+	mouse = xcb_query_pointer_reply(conn, 
 		xcb_query_pointer(conn, screen->root, 0));
-	if (reply == NULL) {
+	if (mouse == NULL) {
 		die("Failed to get pointer position during motion event.\n");
 	}
+	/* Retrieve the geometry of the window we are handling. */
+	cookie = xcb_get_geometry(conn, curr_window);
+	geom = xcb_get_geometry_reply(conn, cookie, NULL);
+	/* TODO: Rearrange code below w/ less indents and make it readable. */
 	switch (mode) {
 	case MOUSE_MODE_MOVE:
+		uint16_t x;
+		uint16_t y;
+
+		x = geom->width + (2 * BORDER_WIDTH);
+		y = geom->height + (2 * BORDER_WIDTH);
+		values[0] = ((mouse->root_x + x) > screen->width_in_pixels)
+			? (screen->width_in_pixels - x) : mouse->root_x;
+		values[1] = ((mouse->root_y + y) > screen->height_in_pixels)
+			? (screen->height_in_pixels - y) : mouse->root_y;
+		xcb_configure_window(conn, curr_window, XCB_CONFIG_WINDOW_X
+			| XCB_CONFIG_WINDOW_Y, values);
 		break;
 	case MOUSE_MODE_RESIZE:
+		if (!(mouse->root_x <= geom->x) 
+				|| !(mouse->root_y <= geom->y)) {
+			values[0] = mouse->root_x - geom->x - BORDER_WIDTH;
+			values[1] = mouse->root_y - geom->x - BORDER_WIDTH;
+			if (values[0] >= WINDOW_MIN_WIDTH 
+					&& values[1] >= WINDOW_MIN_HEIGHT) {
+				xcb_configure_window(conn, curr_window, 
+					XCB_CONFIG_WINDOW_WIDTH
+					| XCB_CONFIG_WINDOW_HEIGHT, values);
+			}
+		}
 		break;
 	default:
 		break;
