@@ -43,7 +43,7 @@ static void xcb_raise_window(xcb_drawable_t window)
 	}
 	xcb_configure_window(conn, window, XCB_CONFIG_WINDOW_STACK_MODE,
 		XCB_STACK_MODE_ABOVE);
-	/* xcb_flush(conn); */
+	xcb_flush(conn);
 }
 
 static void xcb_focus_window(xcb_drawable_t window)
@@ -80,11 +80,12 @@ static void xcb_get_keycodes(xcb_keysym_t keysym)
 static void button_press(xcb_generic_event_t *event) 
 { 
 	xcb_button_press_event *button;
-	xcb_drawable_t window;
 	uint32_t mask;
 
 	button = (xcb_button_press_event_t *) event;
-	xcb_raise_window(button->child);
+	curr_window = button->child;
+	xcb_raise_window(curr_window);
+	mode = (e->detail == 1) ? 1 : (curr_window) ? 3 : 0;
 	/* Take control of pointer and confine it to root until release. */
 	mask = XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_BUTTON_MOTION
 		| XCB_EVENT_MASK_POINTER_MOTION_HINT;
@@ -133,11 +134,11 @@ static void map_request(xcb_generic_event_t *event)
 	map = (xcb_map_request_event_t *) event;
 	xcb_map_window(conn, map->window);
 	/* TODO: Replace w/ geom functions from xcb to get window size. */
-	vals[0] = (screen->width_in_pixels / 2) - (800 / 2);
-	vals[1] = (screen->height_in_pixels / 2) - (600 / 2);
-	vals[2] = 800;
-	vals[3] = 600;
-	vals[4] = 1;
+	vals[0] = (screen->width_in_pixels / 2) - (WINDOW_DEFAULT_WIDTH / 2);
+	vals[1] = (screen->height_in_pixels / 2) - (WINDOW_DEFAULT_HEIGHT/ 2);
+	vals[2] = WINDOW_DEFAULT_WIDTH;
+	vals[3] = WINDOW_DEFAULT_HEIGTH;
+	vals[4] = BORDER_WIDTH;
 	xcb_configure_window(conn, map->window, XCB_CONFIG_WINDOW_X
 		| XCB_CONFIG_WINDOW_Y | XCB_CONFIG_WINDOW_WIDTH
 		| XCB_CONFIG_WINDOW_HEIGHT | XCB_CONFIG_WINDOW_BORDER_WIDTH,
@@ -151,30 +152,33 @@ static void map_request(xcb_generic_event_t *event)
 
 static void motion_notify(xcb_generic_event_t *event) 
 { 
+	xcb_query_pointer_cookie_t mouse_cookie;
 	xcb_query_pointer_reply_t *mouse;
-	xcb_get_geometry_cookie_t cookie;
+	xcb_get_geometry_cookie_t geom_cookie;
 	xcb_get_geometry_reply_t *geom;
+	int32_t x;
+	int32_t y;
 	uint32_t values[2];
 
 	UNUSED(event);
 	if (!curr_window) {
 		return;
 	}
-	/* Get mouse positions; */
-	mouse = xcb_query_pointer_reply(conn, 
-		xcb_query_pointer(conn, screen->root, 0));
+	/* Query mouse data; */
+	mouse_cookie = xcb_query_pointer(conn, screen->root);
+	mouse = xcb_query_pointer_reply(conn, mouse_cookie, 0);
 	if (mouse == NULL) {
 		die("Failed to get pointer position during motion event.\n");
 	}
 	/* Retrieve the geometry of the window we are handling. */
-	cookie = xcb_get_geometry(conn, curr_window);
-	geom = xcb_get_geometry_reply(conn, cookie, NULL);
+	geom_cookie = xcb_get_geometry(conn, curr_window);
+	geom = xcb_get_geometry_reply(conn, geom_cookie, NULL);
+	if (geom == NULL) {
+		die("Failed to get window geometry.\n");
+	}
 	/* TODO: Rearrange code below w/ less indents and make it readable. */
 	switch (mode) {
 	case MOUSE_MODE_MOVE:
-		uint16_t x;
-		uint16_t y;
-
 		x = geom->width + (2 * BORDER_WIDTH);
 		y = geom->height + (2 * BORDER_WIDTH);
 		values[0] = ((mouse->root_x + x) > screen->width_in_pixels)
@@ -185,12 +189,12 @@ static void motion_notify(xcb_generic_event_t *event)
 			| XCB_CONFIG_WINDOW_Y, values);
 		break;
 	case MOUSE_MODE_RESIZE:
-		if (!(mouse->root_x <= geom->x) 
-				|| !(mouse->root_y <= geom->y)) {
+		if (!((mouse->root_x <= geom->x)
+				|| (mouse->root_y <= geom->y))) {
 			values[0] = mouse->root_x - geom->x - BORDER_WIDTH;
 			values[1] = mouse->root_y - geom->x - BORDER_WIDTH;
-			if (values[0] >= WINDOW_MIN_WIDTH 
-					&& values[1] >= WINDOW_MIN_HEIGHT) {
+			if ((values[0] >= WINDOW_MIN_WIDTH)
+					&& (values[1] >= WINDOW_MIN_HEIGHT)) {
 				xcb_configure_window(conn, curr_window, 
 					XCB_CONFIG_WINDOW_WIDTH
 					| XCB_CONFIG_WINDOW_HEIGHT, values);
@@ -214,7 +218,7 @@ static void setup(void)
 	values = XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
 		| XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY
 		| XCB_EVENT_MASK_STRUCTURE_NOTIFY
-		| XCB_EVENT_PROPERTY_CHANGE;
+		| XCB_EVENT_MASK_PROPERTY_CHANGE;
 	/* TODO: Add error checking for this next section w/ cookies. */
 	xcb_change_window_attributes(conn, screen->root, mask, values);
 	xcb_ungrab_key(conn, XCB_GRAB_ANY, screen->root, XCB_MOD_MASK_ANY);
