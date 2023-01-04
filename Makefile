@@ -7,7 +7,9 @@ MANDIR = ${PREFIX}/share/man
 
 SOURCE = ${wildcard *.c}
 
-all: ${SOURCE}
+all: zwm
+
+zwm: ${SOURCE}
 	${CC} ${CFLAGS} -o $@ $< $(LFLAGS)
 
 .PHONY: all
