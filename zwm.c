@@ -253,9 +253,11 @@ static void run(void)
 		if (!event) {
 			die("Error when handling X events.\n");
 		}
-		events[event->response_type & ~0x80] (&event);
+		if (events[event->response_type & ~0x80]) {
+			events[event->response_type & ~0x80] (event);
+		}
 		free(event);
-		/* xcb_flush(conn); */
+		xcb_flush(conn);
 	}
 }
 
