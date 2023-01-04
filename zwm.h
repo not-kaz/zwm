@@ -34,6 +34,7 @@ static void destroy_notify(xcb_generic_event_t *event);
 static void enter_notify(xcb_generic_event_t *event);
 static void focus_in(xcb_generic_event_t *event);
 static void focus_out(xcb_generic_event_t *event);
+static void key_press(xcb_generic_event_t *event);
 static void map_request(xcb_generic_event_t *event);
 static void motion_notify(xcb_generic_event_t *event);
 /* Internal functions */
@@ -42,6 +43,15 @@ static void run(void);
 
 /* X events to handle */
 static void (*events[])(xcb_generic_event_t *event) = {
+	[XCB_BUTTON_PRESS] = button_press,
+	[XCB_BUTTON_RELEASE] = button_release,
+	[XCB_DESTROY_NOTIFY] = destroy_notify,
+	[XCB_ENTER_NOTIFY] = enter_notify,
+	[XCB_FOCUS_IN] = focus_in,
+	[XCB_FOCUS_OUT] = focus_out,
+	[XCB_KEY_PRESS] = key_press,
+	[XCB_MAP_REQUEST] = map_request,
+	[XCB_MOTION_NOTIFY] = motion_notify,
 	[XCB_NONE] = NULL
 };
 
