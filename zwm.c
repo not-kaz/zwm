@@ -68,7 +68,7 @@ static void xcb_get_keycodes(xcb_keysym_t keysym)
 {
 	/* Much love to @mcpcpc on Github, taken from his XWM source. */
 	xcb_key_symbols_t *syms;
-	xvb_keycode_t *keycode;
+	xcb_keycode_t *keycode;
 
 	syms = xcb_key_symbols_alloc(conn);
 	keycode = (!(syms) ? NULL : xcb_key_symbols_get_keycode(syms, keysym));
