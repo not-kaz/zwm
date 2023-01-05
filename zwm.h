@@ -5,13 +5,14 @@
 #define UNUSED(_x_) (void)(_x_)
 #define ARRAY_SIZE(_array_) (sizeof((_array_)) / sizeof((_array_)[0]))
 
+/* Structures and enums */
 enum mouse_mode = {
+	MOUSE_MODE_NONE,
 	MOUSE_MODE_MOVE,
 	MOUSE_MODE_RESIZE,
 	MOUSE_MODE_NITEMS
 };
 
-/* Structures */
 struct key {
 	unsigned int mod;
 	xcb_keysym_t keysym;
