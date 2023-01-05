@@ -55,12 +55,15 @@ static void xcb_focus_window(xcb_drawable_t window)
 		XCB_CURRENT_TIME);
 }
 
-static void xcb_set_focus_color(xcb_window_t window, int32_t color)
+static void xcb_set_focus_color(xcb_window_t window, uint32_t color)
 {
+	uint32_t col;
+
 	if ((BORDER_WIDTH <= 0) || (window == screen->root) || (!window)) {
 		return;
 	}
-	xcb_change_window_attributes(conn, window, XCB_CW_BORDER_PIXEL, color);
+	col = color;
+	xcb_change_window_attributes(conn, window, XCB_CW_BORDER_PIXEL, &col);
 	xcb_flush(conn);
 }
 
