@@ -178,13 +178,13 @@ static void motion_notify(xcb_generic_event_t *event)
 	mouse_cookie = xcb_query_pointer(conn, screen->root);
 	mouse = xcb_query_pointer_reply(conn, mouse_cookie, 0);
 	if (mouse == NULL) {
-		die("Failed to get pointer position during motion event.\n");
+		return;
 	}
 	/* Retrieve the geometry of the window we are handling. */
 	geom_cookie = xcb_get_geometry(conn, curr_window);
 	geom = xcb_get_geometry_reply(conn, geom_cookie, NULL);
 	if (geom == NULL) {
-		die("Failed to get window geometry.\n");
+		return;
 	}
 	/* TODO: Rearrange code below w/ less indents and make it readable. */
 	switch (mode) {
@@ -260,9 +260,6 @@ static void run(void)
 
 	/* Handle events and keeps the program running. */
 	while ((event = xcb_wait_for_event(conn))) {
-		if (!event) {
-			die("Error when handling X events.\n");
-		}
 		if (events[event->response_type & ~0x80]) {
 			events[event->response_type & ~0x80] (event);
 		}
