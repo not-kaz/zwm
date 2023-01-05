@@ -52,7 +52,7 @@ static void (*events[])(xcb_generic_event_t *event) = {
 	[XCB_KEY_PRESS] = key_press,
 	[XCB_MAP_REQUEST] = map_request,
 	[XCB_MOTION_NOTIFY] = motion_notify,
-	[XCB_NONE] = NULL
+	/*[XCB_NONE] = NULL*/
 };
 
 #endif
