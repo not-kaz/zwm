@@ -126,6 +126,11 @@ static void focus_out(xcb_generic_event_t *event)
 	UNUSED(event); 
 }
 
+static void key_press(xcb_generic_event_t *event)
+{
+
+}
+
 static void map_request(xcb_generic_event_t *event) 
 { 
 	xcb_map_request_event_t *map;
