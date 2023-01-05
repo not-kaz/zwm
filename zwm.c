@@ -76,6 +76,10 @@ static void xcb_get_keycodes(xcb_keysym_t keysym)
 	return keycode;
 }
 
+static void xcb_get_keysyms(xcb_keycode_t keycode)
+{
+}
+
 /* Event functions */
 static void button_press(xcb_generic_event_t *event) 
 { 
