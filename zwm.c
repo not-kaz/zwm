@@ -220,7 +220,7 @@ static void motion_notify(xcb_generic_event_t *event)
 static void setup(void)
 {
 	uint32_t mask;
-	uint32_t values;
+	uint32_t values[1];
 	size_t i;
 
 	/* Assign events we want to know about for the main root window. */
