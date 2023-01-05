@@ -38,7 +38,7 @@ static void shutdown(void)
 /* Helper functions */
 static void xcb_raise_window(xcb_drawable_t window)
 {
-	if (screen->root == window || !window) {
+	if ((!window) || (window == screen->root)) {
 		return;
 	}
 	xcb_configure_window(conn, window, XCB_CONFIG_WINDOW_STACK_MODE,
