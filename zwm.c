@@ -17,6 +17,20 @@ int32_t mode; /* Mouse mode, refer to enum in header file. */
 #include "config.h"
 
 /* WM functions */
+static void spawn(char **com)
+{
+	/* Taken out of @mcpcpc's XWM source, much thanks! */
+	if (fork() == 0) {
+		setsid();
+		if (fork()) {
+			_exit(0);
+		}
+		execvp((char *) com[0], (char **) com);
+		_exit(0);
+	}
+	wait(NULL);
+}
+
 static void die(const char *fmt, ...)
 {
 	va_list args;
@@ -38,11 +52,13 @@ static void shutdown(void)
 /* Helper functions */
 static void xcb_raise_window(xcb_drawable_t window)
 {
+	uint32_t val[1];
+
 	if ((!window) || (window == screen->root)) {
 		return;
 	}
-	xcb_configure_window(conn, window, XCB_CONFIG_WINDOW_STACK_MODE,
-		XCB_STACK_MODE_ABOVE);
+	val[0] = XCB_STACK_MODE_ABOVE:
+	xcb_configure_window(conn, window, XCB_CONFIG_WINDOW_STACK_MODE, val);
 	xcb_flush(conn);
 }
 
@@ -57,19 +73,19 @@ static void xcb_focus_window(xcb_drawable_t window)
 
 static void xcb_set_focus_color(xcb_window_t window, uint32_t color)
 {
-	uint32_t col;
+	uint32_t val[1];
 
 	if ((BORDER_WIDTH <= 0) || (window == screen->root) || (!window)) {
 		return;
 	}
-	col = color;
-	xcb_change_window_attributes(conn, window, XCB_CW_BORDER_PIXEL, &col);
+	val[0] = color;
+	xcb_change_window_attributes(conn, window, XCB_CW_BORDER_PIXEL, val);
 	xcb_flush(conn);
 }
 
 static void xcb_get_keycodes(xcb_keysym_t keysym)
 {
-	/* Much love to @mcpcpc on Github, taken from his XWM source. */
+	/* Taken out of @mcpcpc's XWM source, much thanks! */
 	xcb_key_symbols_t *syms;
 	xcb_keycode_t *keycode;
 
@@ -81,6 +97,13 @@ static void xcb_get_keycodes(xcb_keysym_t keysym)
 
 static void xcb_get_keysyms(xcb_keycode_t keycode)
 {
+	/* Taken out of @mcpcpc's XWM source, much thanks! */
+	xcb_key_symbols_t *syms = xcb_key_symbols_alloc(dpy);
+	xcb_keysym_t keysym;
+
+	keysym = (!(syms) ? 0 : xcb_key_symbols_get_keysym(syms, keycode, 0));
+	xcb_key_symbols_free(syms);
+	return keysym;
 }
 
 /* Event functions */
@@ -126,17 +149,33 @@ static void enter_notify(xcb_generic_event_t *event)
 
 static void focus_in(xcb_generic_event_t *event) 
 { 
-	UNUSED(event); 
+	xcb_focus_in_event_t *focus;
+
+	focus = (xcb_focus_in_event_t *) event;
+	xcb_set_focus_color(focus->event, BORDER_COLOR_FOCUSED);
 }
 
 static void focus_out(xcb_generic_event_t *event) 
 { 
-	UNUSED(event); 
+	xcb_focus_out_event_t *focus;
+
+	focus = (xcb_focus_out_event_t *) event;
+	xcb_set_focus_color(focus->event, BORDER_COLOR_UNFOCUSED);
 }
 
 static void key_press(xcb_generic_event_t *event)
 {
+	xcb_key_press_event *key;
+	size_t i;
 
+	key = (xcb_key_press_event_t *) event;
+	curr_window = key->child;
+	for (i = 0; i < ARRAY_SIZE(keys); ++i) {
+		if ((keys[i].keysym == keysym) 
+				&& (keys[i].mod == key->state)) {
+			keys[i].func(keys[i].com);
+		}
+	}
 }
 
 static void map_request(xcb_generic_event_t *event) 
@@ -147,10 +186,10 @@ static void map_request(xcb_generic_event_t *event)
 	map = (xcb_map_request_event_t *) event;
 	xcb_map_window(conn, map->window);
 	/* TODO: Replace w/ geom functions from xcb to get window size. */
-	vals[0] = (screen->width_in_pixels / 2) - (WINDOW_DEFAULT_WIDTH / 2);
-	vals[1] = (screen->height_in_pixels / 2) - (WINDOW_DEFAULT_HEIGHT/ 2);
-	vals[2] = WINDOW_DEFAULT_WIDTH;
-	vals[3] = WINDOW_DEFAULT_HEIGTH;
+	vals[0] = (screen->width_in_pixels / 2) - (WINDOW_WIDTH_DEFAULT / 2);
+	vals[1] = (screen->height_in_pixels / 2) - (WINDOW_HEIGHT_DEFAULT/ 2);
+	vals[2] = WINDOW_WIDTH_DEFAULT;
+	vals[3] = WINDOW_HEIGHT_DEFAULT;
 	vals[4] = BORDER_WIDTH;
 	xcb_configure_window(conn, map->window, XCB_CONFIG_WINDOW_X
 		| XCB_CONFIG_WINDOW_Y | XCB_CONFIG_WINDOW_WIDTH
@@ -171,7 +210,7 @@ static void motion_notify(xcb_generic_event_t *event)
 	xcb_get_geometry_reply_t *geom;
 	int32_t x;
 	int32_t y;
-	uint32_t values[2];
+	uint32_t vals[2];
 
 	UNUSED(event);
 	if (!curr_window) {
@@ -194,23 +233,23 @@ static void motion_notify(xcb_generic_event_t *event)
 	case MOUSE_MODE_MOVE:
 		x = geom->width + (2 * BORDER_WIDTH);
 		y = geom->height + (2 * BORDER_WIDTH);
-		values[0] = ((mouse->root_x + x) > screen->width_in_pixels)
+		vals[0] = ((mouse->root_x + x) > screen->width_in_pixels)
 			? (screen->width_in_pixels - x) : mouse->root_x;
-		values[1] = ((mouse->root_y + y) > screen->height_in_pixels)
+		vals[1] = ((mouse->root_y + y) > screen->height_in_pixels)
 			? (screen->height_in_pixels - y) : mouse->root_y;
 		xcb_configure_window(conn, curr_window, XCB_CONFIG_WINDOW_X
-			| XCB_CONFIG_WINDOW_Y, values);
+			| XCB_CONFIG_WINDOW_Y, vals);
 		break;
 	case MOUSE_MODE_RESIZE:
 		if (!((mouse->root_x <= geom->x)
 				|| (mouse->root_y <= geom->y))) {
-			values[0] = mouse->root_x - geom->x - BORDER_WIDTH;
-			values[1] = mouse->root_y - geom->x - BORDER_WIDTH;
-			if ((values[0] >= WINDOW_MIN_WIDTH)
-					&& (values[1] >= WINDOW_MIN_HEIGHT)) {
+			vals[0] = mouse->root_x - geom->x - BORDER_WIDTH;
+			vals[1] = mouse->root_y - geom->x - BORDER_WIDTH;
+			if ((vals[0] >= WINDOW_MIN_WIDTH)
+					&& (vals[1] >= WINDOW_MIN_HEIGHT)) {
 				xcb_configure_window(conn, curr_window, 
 					XCB_CONFIG_WINDOW_WIDTH
-					| XCB_CONFIG_WINDOW_HEIGHT, values);
+					| XCB_CONFIG_WINDOW_HEIGHT, vals);
 			}
 		}
 		break;
@@ -223,17 +262,17 @@ static void motion_notify(xcb_generic_event_t *event)
 static void setup(void)
 {
 	uint32_t mask;
-	uint32_t values[1];
+	uint32_t vals[1];
 	size_t i;
 
 	/* Assign events we want to know about for the main root window. */
 	mask = XCB_CW_EVENT_MASK;
-	values = XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
+	vals = XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
 		| XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY
 		| XCB_EVENT_MASK_STRUCTURE_NOTIFY
 		| XCB_EVENT_MASK_PROPERTY_CHANGE;
 	/* TODO: Add error checking for this next section w/ cookies. */
-	xcb_change_window_attributes(conn, screen->root, mask, values);
+	xcb_change_window_attributes(conn, screen->root, mask, vals);
 	xcb_ungrab_key(conn, XCB_GRAB_ANY, screen->root, XCB_MOD_MASK_ANY);
 	/* Grab input for key bindings from the config. */
 	for (i = 0; i < ARRAY_SIZE(keys); ++i) {
@@ -262,13 +301,44 @@ static void run(void)
 	xcb_generic_event_t *event;
 
 	/* Handle events and keeps the program running. */
-	while ((event = xcb_wait_for_event(conn))) {
+	while (wm_is_running && (event = xcb_wait_for_event(conn))) {
+		switch (event->response_type & ~0x80) {
+		case XCB_BUTTON_PRESS:
+			button_press(event);
+			break;
+		case XCB_BUTTON_RELEASE:
+			button_release(event);
+			break;
+		case XCB_DESTROY_NOTIFY:
+			destroy_notify(event);
+			break;
+		case XCB_ENTER_NOTIFY:
+			enter_notify(event);
+			break;
+		case XCB_FOCUS_IN:
+			focus_in(event);
+			break;
+		case XCB_FOCUS_OUT:
+			focus_out(event);
+			break;
+		case XCB_KEY_PRESS:
+			key_press(event);
+			break;
+		case XCB_MAP_REQUEST:
+			map_request(event);
+			break;
+		case XCB_MOTION_NOTIFY:
+			motion_notify(event);
+			break;
+		}
+	}
+	/*while ((event = xcb_wait_for_event(conn))) {
 		if (events[event->response_type & ~0x80]) {
 			events[event->response_type & ~0x80] (event);
 		}
 		free(event);
 		xcb_flush(conn);
-	}
+	}*/
 }
 
 int main(void)

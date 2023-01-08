@@ -5,8 +5,14 @@
 #define UNUSED(_x_) (void)(_x_)
 #define ARRAY_SIZE(_array_) (sizeof((_array_)) / sizeof((_array_)[0]))
 
+/* Default window values */
+#define WINDOW_WIDTH_DEFAULT 600
+#define WINDOW_HEIGHT_DEFAULT 400
+#define WINDOW_WIDTH_MIN 60
+#define WINDOW_HEIGHT_MIN 40
+
 /* Structures and enums */
-enum mouse_mode = {
+enum mouse_mode {
 	MOUSE_MODE_NONE,
 	MOUSE_MODE_MOVE,
 	MOUSE_MODE_RESIZE,
@@ -43,7 +49,7 @@ static void setup(void);
 static void run(void);
 
 /* X events to handle */
-static void (*events[])(xcb_generic_event_t *event) = {
+/*static void (*events[])(xcb_generic_event_t *event) = {
 	[XCB_BUTTON_PRESS] = button_press,
 	[XCB_BUTTON_RELEASE] = button_release,
 	[XCB_DESTROY_NOTIFY] = destroy_notify,
@@ -53,7 +59,7 @@ static void (*events[])(xcb_generic_event_t *event) = {
 	[XCB_KEY_PRESS] = key_press,
 	[XCB_MAP_REQUEST] = map_request,
 	[XCB_MOTION_NOTIFY] = motion_notify,
-	/*[XCB_NONE] = NULL*/
-};
+	[XCB_NONE] = NULL
+};*/
 
 #endif
