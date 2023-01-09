@@ -36,16 +36,6 @@ static void shutdown(void)
 }
 
 /* Helper functions */
-static void xcb_raise_window(xcb_drawable_t window)
-{
-	if ((!window) || (window == screen->root)) {
-		return;
-	}
-	xcb_configure_window(conn, window, XCB_CONFIG_WINDOW_STACK_MODE,
-		XCB_STACK_MODE_ABOVE);
-	xcb_flush(conn);
-}
-
 static void xcb_focus_window(xcb_drawable_t window)
 {
 	if ((!window) || (window == screen->root)) {
@@ -67,7 +57,7 @@ static void xcb_set_focus_color(xcb_window_t window, uint32_t color)
 	xcb_flush(conn);
 }
 
-static void xcb_get_keycodes(xcb_keysym_t keysym)
+static void xcb_get_keycode(xcb_keysym_t keysym)
 {
 	/* Much love to @mcpcpc on Github, taken from his XWM source. */
 	xcb_key_symbols_t *syms;
@@ -79,8 +69,27 @@ static void xcb_get_keycodes(xcb_keysym_t keysym)
 	return keycode;
 }
 
-static void xcb_get_keysyms(xcb_keycode_t keycode)
+static void xcb_get_keysym(xcb_keycode_t keycode)
 {
+	/* Much love to @mcpcpc on Github, taken from his XWM source. */
+	xcb_key_symbols_t *syms;
+	xcb_keysym_t *keysym;
+
+	keysym = (!(syms) ? 0 : xcb_key_symbols_get_keysym(syms, keycode, 0));
+	xcb_key_symbols_free(syms);
+	return keysym;
+}
+
+static void xcb_raise_window(xcb_drawable_t window)
+{
+	uint32_t val[1];
+
+	if ((!window) || (window == screen->root)) {
+		return;
+	}
+	val[0] = XCB_STACK_MODE_ABOVE;
+	xcb_configure_window(conn, window, XCB_CONFIG_WINDOW_STACK_MODE, val);
+	xcb_flush(conn);
 }
 
 /* Event functions */
