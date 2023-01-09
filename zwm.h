@@ -5,6 +5,12 @@
 #define UNUSED(_x_) (void)(_x_)
 #define ARRAY_SIZE(_array_) (sizeof((_array_)) / sizeof((_array_)[0]))
 
+/* Default window values */
+#define WINDOW_WIDTH_DEFAULT 600
+#define WINDOW_HEIGHT_DEFAULT 400
+#define WINDOW_WIDTH_MIN 60
+#define WINDOW_HEIGHT_MIN 40
+
 /* Structures and enums */
 enum mouse_mode = {
 	MOUSE_MODE_NONE,
