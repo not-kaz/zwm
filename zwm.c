@@ -156,19 +156,19 @@ static void map_request(xcb_generic_event_t *event)
 	map = (xcb_map_request_event_t *) event;
 	xcb_map_window(conn, map->window);
 	/* TODO: Replace w/ geom functions from xcb to get window size. */
-	vals[0] = (screen->width_in_pixels / 2) - (WINDOW_DEFAULT_WIDTH / 2);
-	vals[1] = (screen->height_in_pixels / 2) - (WINDOW_DEFAULT_HEIGHT/ 2);
-	vals[2] = WINDOW_DEFAULT_WIDTH;
-	vals[3] = WINDOW_DEFAULT_HEIGTH;
+	vals[0] = (screen->width_in_pixels / 2) - (WINDOW_WIDTH_DEFAULT / 2);
+	vals[1] = (screen->height_in_pixels / 2) - (WINDOW_HEIGHT_DEFAULT/ 2);
+	vals[2] = WINDOW_WIDTH_DEFAULT;
+	vals[3] = WINDOW_HEIGHT_DEFAULT;
 	vals[4] = BORDER_WIDTH;
 	xcb_configure_window(conn, map->window, XCB_CONFIG_WINDOW_X
 		| XCB_CONFIG_WINDOW_Y | XCB_CONFIG_WINDOW_WIDTH
 		| XCB_CONFIG_WINDOW_HEIGHT | XCB_CONFIG_WINDOW_BORDER_WIDTH,
 		vals);
 	xcb_flush(conn);
+	vals[0] = XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_FOCUS_CHANGE;
 	xcb_change_window_attributes_checked(conn, map->window, 
-		XCB_CW_EVENT_MASK, XCB_EVENT_MASK_ENTER_WINDOW
-		| XCB_EVENT_MASK_FOCUS_CHANGE);
+		XCB_CW_EVENT_MASK, vals); 
 	xcb_focus_window(map->window);
 }
 
