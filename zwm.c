@@ -272,11 +272,33 @@ static void run(void)
 
 	/* Handle events and keeps the program running. */
 	while ((event = xcb_wait_for_event(conn))) {
-		if (events[event->response_type & ~0x80]) {
-			events[event->response_type & ~0x80] (event);
+		switch (event->response_type & ~0x80) {
+		case XCB_BUTTON_PRESS:
+			button_press(event);
+			break;
+		case XCB_BUTTON_RELEASE:
+			button_release(event);
+			break;
+		case XCB_DESTROY_NOTIFY:
+			destroy_notify(event);
+			break;
+		case XCB_ENTER_NOTIFY:
+			enter_notify(event);
+			break;
+		case XCB_FOCUS_IN:
+			focus_in(event);
+			break;
+		case XCB_FOCUS_OUT:
+			focus_out(event);
+			break;
+		case XCB_KEY_PRESS:
+			key_press(event);
+			break;
+		case XCB_MAP_REQUEST:
+			map_request(event);
+			break;
 		}
 		free(event);
-		xcb_flush(conn);
 	}
 }
 
