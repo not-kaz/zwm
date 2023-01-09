@@ -30,8 +30,6 @@ struct key {
 static void shutdown(void);
 static void die(const char *fmt, ...);
 /* Helper functions */
-static void xcb_raise_window(xcb_drawable_t window);
-static xcb_keycode_t *xcb_get_keycodes(xcb_keysym_t keysym);
 static void xcb_focus_window(xcb_drawable_t window); 
 static void xcb_set_focus_color(xcb_window_t window, int32_t color);
 static xcb_keycode_t *xcb_get_keycode(xcb_keysym_t keysym);
