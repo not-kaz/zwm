@@ -47,13 +47,13 @@ static void xcb_focus_window(xcb_drawable_t window)
 
 static void xcb_set_focus_color(xcb_window_t window, uint32_t color)
 {
-	uint32_t col;
+	uint32_t val[1];
 
 	if ((BORDER_WIDTH <= 0) || (window == screen->root) || (!window)) {
 		return;
 	}
-	col = color;
-	xcb_change_window_attributes(conn, window, XCB_CW_BORDER_PIXEL, &col);
+	val[0] = color;
+	xcb_change_window_attributes(conn, window, XCB_CW_BORDER_PIXEL, val);
 	xcb_flush(conn);
 }
 
@@ -180,7 +180,7 @@ static void motion_notify(xcb_generic_event_t *event)
 	xcb_get_geometry_reply_t *geom;
 	int32_t x;
 	int32_t y;
-	uint32_t values[2];
+	uint32_t vals[2];
 
 	UNUSED(event);
 	if (!curr_window) {
@@ -203,23 +203,23 @@ static void motion_notify(xcb_generic_event_t *event)
 	case MOUSE_MODE_MOVE:
 		x = geom->width + (2 * BORDER_WIDTH);
 		y = geom->height + (2 * BORDER_WIDTH);
-		values[0] = ((mouse->root_x + x) > screen->width_in_pixels)
+		vals[0] = ((mouse->root_x + x) > screen->width_in_pixels)
 			? (screen->width_in_pixels - x) : mouse->root_x;
-		values[1] = ((mouse->root_y + y) > screen->height_in_pixels)
+		vals[1] = ((mouse->root_y + y) > screen->height_in_pixels)
 			? (screen->height_in_pixels - y) : mouse->root_y;
 		xcb_configure_window(conn, curr_window, XCB_CONFIG_WINDOW_X
-			| XCB_CONFIG_WINDOW_Y, values);
+			| XCB_CONFIG_WINDOW_Y, vals);
 		break;
 	case MOUSE_MODE_RESIZE:
 		if (!((mouse->root_x <= geom->x)
 				|| (mouse->root_y <= geom->y))) {
-			values[0] = mouse->root_x - geom->x - BORDER_WIDTH;
-			values[1] = mouse->root_y - geom->x - BORDER_WIDTH;
-			if ((values[0] >= WINDOW_MIN_WIDTH)
-					&& (values[1] >= WINDOW_MIN_HEIGHT)) {
+			vals[0] = mouse->root_x - geom->x - BORDER_WIDTH;
+			vals[1] = mouse->root_y - geom->x - BORDER_WIDTH;
+			if ((vals[0] >= WINDOW_MIN_WIDTH)
+					&& (vals[1] >= WINDOW_MIN_HEIGHT)) {
 				xcb_configure_window(conn, curr_window, 
 					XCB_CONFIG_WINDOW_WIDTH
-					| XCB_CONFIG_WINDOW_HEIGHT, values);
+					| XCB_CONFIG_WINDOW_HEIGHT, vals);
 			}
 		}
 		break;
@@ -232,17 +232,17 @@ static void motion_notify(xcb_generic_event_t *event)
 static void setup(void)
 {
 	uint32_t mask;
-	uint32_t values[1];
+	uint32_t vals[1];
 	size_t i;
 
 	/* Assign events we want to know about for the main root window. */
 	mask = XCB_CW_EVENT_MASK;
-	values = XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
+	vals = XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
 		| XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY
 		| XCB_EVENT_MASK_STRUCTURE_NOTIFY
 		| XCB_EVENT_MASK_PROPERTY_CHANGE;
 	/* TODO: Add error checking for this next section w/ cookies. */
-	xcb_change_window_attributes(conn, screen->root, mask, values);
+	xcb_change_window_attributes(conn, screen->root, mask, vals);
 	xcb_ungrab_key(conn, XCB_GRAB_ANY, screen->root, XCB_MOD_MASK_ANY);
 	/* Grab input for key bindings from the config. */
 	for (i = 0; i < ARRAY_SIZE(keys); ++i) {
