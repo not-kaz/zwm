@@ -135,17 +135,34 @@ static void enter_notify(xcb_generic_event_t *event)
 
 static void focus_in(xcb_generic_event_t *event) 
 { 
-	UNUSED(event); 
+	xcb_focus_in_event_t *focus;
+
+	focus = (xcb_focus_in_event_t *) event;
+	xcb_set_focus_color(focus->event, BORDER_COLOR_FOCUSED);
 }
 
 static void focus_out(xcb_generic_event_t *event) 
 { 
-	UNUSED(event); 
+	xcb_focus_in_event_t *focus;
+
+	focus = (xcb_focus_in_event_t *) event;
+	xcb_set_focus_color(focus->event, BORDER_COLOR_UNFOCUSED);
 }
 
 static void key_press(xcb_generic_event_t *event)
 {
+	xcb_key_press_event_t *key;
+	xcb_keysym_t keysym;
 
+	key = (xcb_key_press_event_t *) event;
+	keysym = xcb_get_kesym(key->detail);
+	curr_window = key->child;
+	for (i = 0; i < ARRAY_SIZE(keys); ++i) {
+		if ((keys[i].keysym == keysym)
+				&& (keys[i].mod == key->state)) {
+			keys[i].func(keys[i].com);
+		}
+	}
 }
 
 static void map_request(xcb_generic_event_t *event) 
