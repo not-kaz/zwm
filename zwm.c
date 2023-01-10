@@ -95,13 +95,13 @@ static void xcb_raise_window(xcb_drawable_t window)
 /* Event functions */
 static void button_press(xcb_generic_event_t *event) 
 { 
-	xcb_button_press_event *button;
+	xcb_button_press_event_t *button;
 	uint32_t mask;
 
 	button = (xcb_button_press_event_t *) event;
 	curr_window = button->child;
 	xcb_raise_window(curr_window);
-	mouse = (e->detail == MOUSE_BUTTON_LEFT) ? MOUSE_BUTTON_LEFT 
+	mouse = (button->detail == MOUSE_BUTTON_LEFT) ? MOUSE_BUTTON_LEFT 
 		: (curr_window) ? MOUSE_BUTTON_RIGHT : MOUSE_BUTTON_NONE;
 	/* Take control of pointer and confine it to root until release. */
 	mask = XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_BUTTON_MOTION
@@ -255,7 +255,7 @@ static void setup(void)
 
 	/* Assign events we want to know about for the main root window. */
 	mask = XCB_CW_EVENT_MASK;
-	vals = XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
+	vals[0] = XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT
 		| XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY
 		| XCB_EVENT_MASK_STRUCTURE_NOTIFY
 		| XCB_EVENT_MASK_PROPERTY_CHANGE;
@@ -320,6 +320,9 @@ static void run(void)
 			break;
 		case XCB_MAP_REQUEST:
 			map_request(event);
+			break;
+		case XCB_MOTION_NOTIFY:
+			motion_notify(event);
 			break;
 		}
 		free(event);
