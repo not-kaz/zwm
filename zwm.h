@@ -12,7 +12,7 @@
 #define WINDOW_HEIGHT_MIN 40
 
 /* Structures and enums */
-enum mouse_mode = {
+enum mouse_mode {
 	MOUSE_MODE_NONE,
 	MOUSE_MODE_MOVE,
 	MOUSE_MODE_RESIZE,
