@@ -195,8 +195,8 @@ static void motion_notify(xcb_generic_event_t *event)
 	xcb_query_pointer_reply_t *mouse;
 	xcb_get_geometry_cookie_t geom_cookie;
 	xcb_get_geometry_reply_t *geom;
-	int32_t x;
-	int32_t y;
+	uint32_t x;
+	uint32_t y;
 	uint32_t vals[2];
 
 	UNUSED(event);
