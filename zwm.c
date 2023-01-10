@@ -10,7 +10,7 @@
 /* Global variables */
 xcb_connection_t *conn;
 xcb_screen_t *screen;
-xcb_drawable_t *curr_window;
+xcb_drawable_t curr_window;
 int32_t mouse; /* Mouse state, refer to enum in header file. */
 
 /* Included here to allow access to variables located above. */
@@ -265,7 +265,7 @@ static void setup(void)
 	for (i = 0; i < ARRAY_SIZE(keys); ++i) {
 		xcb_keycode_t *keycode;
 
-		keycode = xcb_get_keycodes(keys[i].keysym);
+		keycode = xcb_get_keycode(keys[i].keysym);
 		if (!keycode) {
 			continue;
 		}
