@@ -57,7 +57,7 @@ static void xcb_set_focus_color(xcb_window_t window, uint32_t color)
 	xcb_flush(conn);
 }
 
-static void xcb_get_keycode(xcb_keysym_t keysym)
+static xcb_keycode_t *xcb_get_keycode(xcb_keysym_t keysym)
 {
 	/* Much love to @mcpcpc on Github, taken from his XWM source. */
 	xcb_key_symbols_t *syms;
@@ -69,11 +69,11 @@ static void xcb_get_keycode(xcb_keysym_t keysym)
 	return keycode;
 }
 
-static void xcb_get_keysym(xcb_keycode_t keycode)
+static xcb_keysym_t xcb_get_keysym(xcb_keycode_t keycode)
 {
 	/* Much love to @mcpcpc on Github, taken from his XWM source. */
 	xcb_key_symbols_t *syms;
-	xcb_keysym_t *keysym;
+	xcb_keysym_t keysym;
 
 	keysym = (!(syms) ? 0 : xcb_key_symbols_get_keysym(syms, keycode, 0));
 	xcb_key_symbols_free(syms);
