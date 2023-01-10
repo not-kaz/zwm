@@ -288,7 +288,13 @@ static void run(void)
 	xcb_generic_event_t *event;
 
 	/* Handle events and keeps the program running. */
-	while ((event = xcb_wait_for_event(conn))) {
+	while ((event = xcb_poll_for_event(conn))) {
+		if (!event) {
+			if (xcb_connection_has_error(conn)) {
+				die("Polling for events failed.\n");
+			}
+			continue;
+		}
 		switch (event->response_type & ~0x80) {
 		case XCB_BUTTON_PRESS:
 			button_press(event);
