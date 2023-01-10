@@ -28,7 +28,7 @@ static void die(const char *fmt, ...)
 	exit(EXIT_FAILURE);
 }
 
-static void shutdown(void)
+static void shutdown(char **com)
 {
 	xcb_disconnect(conn);
 	fprintf(stdout, "Shutting down window manager.\n");

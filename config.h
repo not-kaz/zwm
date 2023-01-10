@@ -13,7 +13,7 @@
 /* Key bindings */
 static const struct key keys[] = {
 	/* MOD	     KEY       FUNC     ARG */
-	{ MOD_KEY, XK_Return, shutdown, NULL },
+	{ MOD_KEY, 0xff08, shutdown, NULL }, /* Backspace */
 };
 
 #endif

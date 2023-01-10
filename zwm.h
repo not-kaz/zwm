@@ -28,7 +28,7 @@ struct key {
 };
 
 /* WM functions */
-static void shutdown(void);
+static void shutdown(char **com);
 static void die(const char *fmt, ...);
 /* Helper functions */
 static void xcb_focus_window(xcb_drawable_t window); 
