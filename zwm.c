@@ -144,9 +144,9 @@ static void focus_in(xcb_generic_event_t *event)
 
 static void focus_out(xcb_generic_event_t *event) 
 { 
-	xcb_focus_in_event_t *focus;
+	xcb_focus_out_event_t *focus;
 
-	focus = (xcb_focus_in_event_t *) event;
+	focus = (xcb_focus_out_event_t *) event;
 	xcb_set_focus_color(focus->event, BORDER_COLOR_UNFOCUSED);
 }
 
@@ -197,8 +197,8 @@ static void motion_notify(xcb_generic_event_t *event)
 	xcb_query_pointer_reply_t *pointer;
 	xcb_get_geometry_cookie_t geom_cookie;
 	xcb_get_geometry_reply_t *geom;
-	int16_t x;
-	int16_t y;
+	uint16_t x;
+	uint16_t y;
 	uint32_t vals[2];
 
 	UNUSED(event);
@@ -237,7 +237,7 @@ static void motion_notify(xcb_generic_event_t *event)
 		if (!((pointer->root_x <= geom->x)
 				|| (pointer->root_y <= geom->y))) {
 			vals[0] = pointer->root_x - geom->x - BORDER_WIDTH;
-			vals[1] = pointer->root_y - geom->x - BORDER_WIDTH;
+			vals[1] = pointer->root_y - geom->y - BORDER_WIDTH;
 			if ((vals[0] >= WINDOW_WIDTH_MIN)
 					&& (vals[1] >= WINDOW_HEIGHT_MIN)) {
 				xcb_configure_window(conn, curr_window, 
@@ -331,6 +331,7 @@ static void run(void)
 			break;
 		}
 		free(event);
+		xcb_flush(conn);
 	}
 }
 
