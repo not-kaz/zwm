@@ -130,7 +130,7 @@ static void enter_notify(xcb_generic_event_t *event)
 	xcb_enter_notify_event_t *enter;
 
 	enter = (xcb_enter_notify_event_t *) event;
-	xcb_focus_window(enter->window);
+	xcb_focus_window(enter->event);
 }
 
 static void focus_in(xcb_generic_event_t *event) 
