@@ -12,11 +12,12 @@
 #define WINDOW_HEIGHT_MIN 40
 
 /* Structures and enums */
-enum mouse_mode {
-	MOUSE_MODE_NONE,
-	MOUSE_MODE_MOVE,
-	MOUSE_MODE_RESIZE,
-	MOUSE_MODE_NITEMS
+enum mouse_button {
+	MOUSE_BUTTON_NONE,
+	MOUSE_BUTTON_LEFT,
+	MOUSE_BUTTON_MIDDLE,
+	MOUSE_BUTTON_RIGHT,
+	MOUSE_BUTTON_NITEMS
 };
 
 struct key {

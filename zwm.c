@@ -11,7 +11,7 @@
 xcb_connection_t *conn;
 xcb_screen_t *screen;
 xcb_drawable_t *curr_window;
-int32_t mode; /* Mouse mode, refer to enum in header file. */
+int32_t mouse; /* Mouse state, refer to enum in header file. */
 
 /* Included here to allow access to variables located above. */
 #include "config.h"
@@ -101,8 +101,8 @@ static void button_press(xcb_generic_event_t *event)
 	button = (xcb_button_press_event_t *) event;
 	curr_window = button->child;
 	xcb_raise_window(curr_window);
-	mode = (e->detail == 1) ? MOUSE_MODE_MOVE 
-		: (curr_window) ? MOUSE_MODE_RESIZE: MOUSE_MODE_NONE;
+	mouse = (e->detail == MOUSE_BUTTON_LEFT) ? MOUSE_BUTTON_LEFT 
+		: (curr_window) ? MOUSE_BUTTON_RIGHT : MOUSE_BUTTON_NONE;
 	/* Take control of pointer and confine it to root until release. */
 	mask = XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_BUTTON_MOTION
 		| XCB_EVENT_MASK_POINTER_MOTION_HINT;
