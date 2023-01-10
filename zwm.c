@@ -75,6 +75,7 @@ static xcb_keysym_t xcb_get_keysym(xcb_keycode_t keycode)
 	xcb_key_symbols_t *syms;
 	xcb_keysym_t keysym;
 
+	syms = xcb_key_symbols_alloc(conn);
 	keysym = (!(syms) ? 0 : xcb_key_symbols_get_keysym(syms, keycode, 0));
 	xcb_key_symbols_free(syms);
 	return keysym;
