@@ -155,7 +155,7 @@ static void key_press(xcb_generic_event_t *event)
 	xcb_keysym_t keysym;
 
 	key = (xcb_key_press_event_t *) event;
-	keysym = xcb_get_kesym(key->detail);
+	keysym = xcb_get_keysym(key->detail);
 	curr_window = key->child;
 	for (i = 0; i < ARRAY_SIZE(keys); ++i) {
 		if ((keys[i].keysym == keysym)
