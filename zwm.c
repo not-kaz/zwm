@@ -153,6 +153,7 @@ static void key_press(xcb_generic_event_t *event)
 {
 	xcb_key_press_event_t *key;
 	xcb_keysym_t keysym;
+	size_t i;
 
 	key = (xcb_key_press_event_t *) event;
 	keysym = xcb_get_keysym(key->detail);
