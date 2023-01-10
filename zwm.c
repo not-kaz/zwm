@@ -206,8 +206,8 @@ static void motion_notify(xcb_generic_event_t *event)
 	}
 	/* Query mouse data; */
 	pointer_cookie = xcb_query_pointer(conn, screen->root);
-	pointer = xcb_query_pointer_reply(conn, mouse_cookie, 0);
-	if (mouse == NULL) {
+	pointer = xcb_query_pointer_reply(conn, pointer_cookie, 0);
+	if (pointer == NULL) {
 		return;
 	}
 	/* Retrieve the geometry of the window we are handling. */
