@@ -191,8 +191,8 @@ static void map_request(xcb_generic_event_t *event)
 
 static void motion_notify(xcb_generic_event_t *event) 
 { 
-	xcb_query_pointer_cookie_t mouse_cookie;
-	xcb_query_pointer_reply_t *mouse;
+	xcb_query_pointer_cookie_t pointer_cookie;
+	xcb_query_pointer_reply_t *pointer;
 	xcb_get_geometry_cookie_t geom_cookie;
 	xcb_get_geometry_reply_t *geom;
 	uint32_t x;
@@ -204,8 +204,8 @@ static void motion_notify(xcb_generic_event_t *event)
 		return;
 	}
 	/* Query mouse data; */
-	mouse_cookie = xcb_query_pointer(conn, screen->root);
-	mouse = xcb_query_pointer_reply(conn, mouse_cookie, 0);
+	pointer_cookie = xcb_query_pointer(conn, screen->root);
+	pointer = xcb_query_pointer_reply(conn, mouse_cookie, 0);
 	if (mouse == NULL) {
 		return;
 	}
@@ -216,22 +216,22 @@ static void motion_notify(xcb_generic_event_t *event)
 		return;
 	}
 	/* TODO: Rearrange code below w/ less indents and make it readable. */
-	switch (mode) {
+	switch (mouse) {
 	case MOUSE_BUTTON_LEFT:
 		x = geom->width + (2 * BORDER_WIDTH);
 		y = geom->height + (2 * BORDER_WIDTH);
-		vals[0] = ((mouse->root_x + x) > screen->width_in_pixels)
-			? (screen->width_in_pixels - x) : mouse->root_x;
-		vals[1] = ((mouse->root_y + y) > screen->height_in_pixels)
-			? (screen->height_in_pixels - y) : mouse->root_y;
+		vals[0] = ((pointer->root_x + x) > screen->width_in_pixels)
+			? (screen->width_in_pixels - x) : pointer->root_x;
+		vals[1] = ((pointer->root_y + y) > screen->height_in_pixels)
+			? (screen->height_in_pixels - y) : pointer->root_y;
 		xcb_configure_window(conn, curr_window, XCB_CONFIG_WINDOW_X
 			| XCB_CONFIG_WINDOW_Y, vals);
 		break;
 	case MOUSE_BUTTON_RIGHT:
-		if (!((mouse->root_x <= geom->x)
-				|| (mouse->root_y <= geom->y))) {
-			vals[0] = mouse->root_x - geom->x - BORDER_WIDTH;
-			vals[1] = mouse->root_y - geom->x - BORDER_WIDTH;
+		if (!((pointer->root_x <= geom->x)
+				|| (pointer->root_y <= geom->y))) {
+			vals[0] = pointer->root_x - geom->x - BORDER_WIDTH;
+			vals[1] = pointer->root_y - geom->x - BORDER_WIDTH;
 			if ((vals[0] >= WINDOW_WIDTH_MIN)
 					&& (vals[1] >= WINDOW_HEIGHT_MIN)) {
 				xcb_configure_window(conn, curr_window, 
