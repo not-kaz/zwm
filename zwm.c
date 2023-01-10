@@ -217,7 +217,7 @@ static void motion_notify(xcb_generic_event_t *event)
 	}
 	/* TODO: Rearrange code below w/ less indents and make it readable. */
 	switch (mode) {
-	case MOUSE_MODE_MOVE:
+	case MOUSE_BUTTON_LEFT:
 		x = geom->width + (2 * BORDER_WIDTH);
 		y = geom->height + (2 * BORDER_WIDTH);
 		vals[0] = ((mouse->root_x + x) > screen->width_in_pixels)
@@ -227,13 +227,13 @@ static void motion_notify(xcb_generic_event_t *event)
 		xcb_configure_window(conn, curr_window, XCB_CONFIG_WINDOW_X
 			| XCB_CONFIG_WINDOW_Y, vals);
 		break;
-	case MOUSE_MODE_RESIZE:
+	case MOUSE_BUTTON_RIGHT:
 		if (!((mouse->root_x <= geom->x)
 				|| (mouse->root_y <= geom->y))) {
 			vals[0] = mouse->root_x - geom->x - BORDER_WIDTH;
 			vals[1] = mouse->root_y - geom->x - BORDER_WIDTH;
-			if ((vals[0] >= WINDOW_MIN_WIDTH)
-					&& (vals[1] >= WINDOW_MIN_HEIGHT)) {
+			if ((vals[0] >= WINDOW_WIDTH_MIN)
+					&& (vals[1] >= WINDOW_HEIGHT_MIN)) {
 				xcb_configure_window(conn, curr_window, 
 					XCB_CONFIG_WINDOW_WIDTH
 					| XCB_CONFIG_WINDOW_HEIGHT, vals);
