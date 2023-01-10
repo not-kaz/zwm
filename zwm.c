@@ -211,15 +211,14 @@ static void motion_notify(xcb_generic_event_t *event)
 	if (pointer == NULL) {
 		return;
 	}
-	/* Retrieve the geometry of the window we are handling. */
-	geom_cookie = xcb_get_geometry(conn, curr_window);
-	geom = xcb_get_geometry_reply(conn, geom_cookie, NULL);
-	if (geom == NULL) {
-		return;
-	}
 	/* TODO: Rearrange code below w/ less indents and make it readable. */
 	switch (mouse) {
 	case MOUSE_BUTTON_LEFT:
+		geom_cookie = xcb_get_geometry(conn, curr_window);
+		geom = xcb_get_geometry_reply(conn, geom_cookie, NULL);
+		if (geom == NULL) {
+			return;
+		}
 		x = geom->width + (2 * BORDER_WIDTH);
 		y = geom->height + (2 * BORDER_WIDTH);
 		vals[0] = ((pointer->root_x + x) > screen->width_in_pixels)
@@ -230,6 +229,11 @@ static void motion_notify(xcb_generic_event_t *event)
 			| XCB_CONFIG_WINDOW_Y, vals);
 		break;
 	case MOUSE_BUTTON_RIGHT:
+		geom_cookie = xcb_get_geometry(conn, curr_window);
+		geom = xcb_get_geometry_reply(conn, geom_cookie, NULL);
+		if (geom == NULL) {
+			return;
+		}
 		if (!((pointer->root_x <= geom->x)
 				|| (pointer->root_y <= geom->y))) {
 			vals[0] = pointer->root_x - geom->x - BORDER_WIDTH;
@@ -290,7 +294,7 @@ static void run(void)
 	xcb_generic_event_t *event;
 
 	/* Handle events and keeps the program running. */
-	while ((event = xcb_poll_for_event(conn))) {
+	while (1 && (event = xcb_wait_for_event(conn))) {
 		if (!event) {
 			if (xcb_connection_has_error(conn)) {
 				die("Polling for events failed.\n");
