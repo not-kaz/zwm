@@ -107,7 +107,7 @@ static void button_press(xcb_generic_event_t *event)
 	xcb_raise_window(curr_window);
 	mouse = (button->detail == 1) ? 1 : (curr_window) ? 3 : 0;
 	/* Take control of pointer and confine it to root until release. */
-	xcb_warp_pointer(conn, XCB_NONE, curr_window, 0, 0, 0, 0, 1, 1);
+	xcb_warp_pointer(conn, curr_window, XCB_NONE, 1, 1, 1, 1, 0, 0);
 	xcb_flush(conn);
 	mask = XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_BUTTON_MOTION
 		| XCB_EVENT_MASK_POINTER_MOTION_HINT;
