@@ -120,6 +120,7 @@ static void button_release(xcb_generic_event_t *event)
 { 
 	UNUSED(event); 
 	xcb_ungrab_pointer(conn, XCB_CURRENT_TIME);
+	xcb_flush(conn);
 }
 
 static void destroy_notify(xcb_generic_event_t *event) 
