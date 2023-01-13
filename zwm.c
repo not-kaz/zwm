@@ -105,6 +105,7 @@ static void button_press(xcb_generic_event_t *event)
 	mouse = (button->detail == MOUSE_BUTTON_LEFT) ? MOUSE_BUTTON_LEFT 
 		: (curr_window) ? MOUSE_BUTTON_RIGHT : MOUSE_BUTTON_NONE;
 	/* Take control of pointer and confine it to root until release. */
+	xcb_warp_pointer(conn, XCB_NONE, curr_window, 0, 0, 0, 0, 1, 1);
 	mask = XCB_EVENT_MASK_BUTTON_RELEASE | XCB_EVENT_MASK_BUTTON_MOTION
 		| XCB_EVENT_MASK_POINTER_MOTION_HINT;
 	xcb_grab_pointer(conn, 0, screen->root, mask, XCB_GRAB_MODE_ASYNC, 
