@@ -337,7 +337,6 @@ static void run(void)
 			break;
 		}
 		free(event);
-		xcb_flush(conn);
 	}
 }
 
