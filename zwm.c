@@ -105,7 +105,7 @@ static void button_press(xcb_generic_event_t *event)
 	}
 	curr_window = button->child;
 	xcb_raise_window(curr_window);
-	mouse = (button->detail == 1) ? 3 : (curr_window) ? 3 : 0;
+	mouse = (button->detail == 1) ? 1 : (curr_window) ? 3 : 0;
 	/* Take control of pointer and confine it to root until release. */
 	xcb_warp_pointer(conn, XCB_NONE, curr_window, 0, 0, 0, 0, 1, 1);
 	xcb_flush(conn);
