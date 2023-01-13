@@ -295,7 +295,8 @@ static void run(void)
 	xcb_generic_event_t *event;
 
 	/* Handle events and keeps the program running. */
-	while (1 && (event = xcb_wait_for_event(conn))) {
+	while (1) {
+		event = xcb_poll_for_event(conn);
 		if (!event) {
 			if (xcb_connection_has_error(conn)) {
 				die("Polling for events failed.\n");
